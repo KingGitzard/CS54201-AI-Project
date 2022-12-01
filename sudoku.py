@@ -80,3 +80,6 @@ print("Block5:",puz.block(5))
 print("Block6:",puz.block(6))
 print("Block7:",puz.block(7))
 print("Block8:",puz.block(8))
+
+print("this is a test")
+#this is to see if the upload works from terminal
