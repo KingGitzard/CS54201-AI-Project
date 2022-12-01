@@ -1,5 +1,4 @@
-# Test Change
-#Yup Again
+#this is hunters code
 class Puzzle:
     def __init__(self, puzzlearray):
         self.grid  = puzzlearray
