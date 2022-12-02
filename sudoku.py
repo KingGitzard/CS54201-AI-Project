@@ -1,3 +1,8 @@
+import os, getopt, sys, ast
+from datetime import datetime
+
+
+
 class Puzzle:
     def __init__(self, puzzlearray):
         self.grid  = puzzlearray
@@ -89,44 +94,56 @@ class Puzzle:
             for c in range(len(self.grid[r])):
                 self.constraints.append(self.cellEvaluate(r,c))
 
-
     def cellEvaluate(self,row,col):
-        cell_constraint_set =  set(self.row(row))
-        cell_constraint_set = cell_constraint_set.union(set(self.column(col)),set(self.block(self.blockByRC(row,col))))
-        cell_constraint_set.remove(0)
-        return cell_constraint_set
+        if self.cellValue(row,col) == 0:
+            cell_constraint_set =  set(self.row(row))     # get the value of the cell
+            cell_constraint_set = cell_constraint_set.union(set(self.column(col)),set(self.block(self.blockByRC(row,col))))
+            cell_constraint_set.remove(0)
+            return cell_constraint_set
+        else:
+            cell_constraint_set = set([])  #set to empty if it is already filled
+            return cell_constraint_set
 
 
-    def getOrdinal(row,col):
-        return ((row * 9 ) + col)
+    def cellValue(self,r,c):
+        return self.grid[r][c]
 
-    def getcartesian(ordinal):
-        return ( [(ordinal // 9 ) , (ordinal % 9 )] )
+    def updatecell(self,r,c,value):
+        self.grid[r][c] = value
 
-
-
+    def cellFilled(self,r,c):
+        if self.cellValue(r,c) == 0:
+            return False
+        else:
+            return True
 
 
 #------------  Working with Constraint List
     def cell_with_one_constraint(self):
-#TODO:  This need to looks at constrains not values.
-#TODO:  ignore cells filled in.
         for cell in range(len(self.constraints)):
             if len(self.constraints[cell]) == 8:
                 return cell
 
 
     def fill_constraints_of_one(self):
-        KeepSearching = True
-        LoopCount = 0
+        puz.gridEvaluate()
+        mycell = puz.cell_with_one_constraint()
 
-        while (KeepSearching and LoopCount < 81):
-            LoopCount += 1
-            CelltoUpdate = self.cell_with_one_constraint()
-            #TODO UpdateCell
+        while mycell != None:
+            print("One Contraint:",mycell)
+            myvalue = puz.find_missing_digit(mycell)
+            print("myvalue",myvalue)
+            cellcart = puz.getcartesian(mycell)
+            print("cellcart:",cellcart)
+            puz.updatecell(cellcart[0],cellcart[1],myvalue)
+            puz.display()
+            puz.gridEvaluate()
+            mycell = puz.cell_with_one_constraint()
 
-    def find_missing(self,Ordinal):
-        return  self.baseSet - self.constraints[Ordinal]
+
+    def find_missing_digit(self,Ordinal):
+        myValueList = list(self.baseSet - self.constraints[Ordinal])
+        return myValueList[0]
 
 
 #------------- Display Items
@@ -161,14 +178,16 @@ class Puzzle:
 
 
 #------------- ideas Not used yet
-    def cellValue(self,r,c):
-        return self.grid[r][c]
 
-    def cellFilled(self,r,c):
-        if self.cellValue(r,c) == 0:
-            return False
-        else:
-            return True
+
+
+    def getOrdinal(self,row,col):
+        return ((row * 9 ) + col)
+
+    def getcartesian(self,ordinal):
+        return ( [(ordinal // 9 ) , (ordinal % 9 )] )
+
+
 
 
 #------------- deprecated
@@ -187,33 +206,55 @@ class Puzzle:
         return unique_list
 
 
+#---------Pull in Paremeters
 
-puz = Puzzle([[0,6,0,8,0,0,5,0,0],[0,0,5,0,0,0,3,6,7],[3,7,0,0,6,5,8,0,9],[6,0,9,0,0,2,1,0,0],[0,0,1,4,8,9,2,0,0],[0,0,0,3,0,6,9,0,0],[0,5,0,0,0,0,4,0,0],[0,1,0,5,4,7,0,0,3],[0,9,6,0,3,8,0,5,1]])
+#------------------------------------Main Code ---------------------------------
 
-#print(puz.length)
 
-#print("Grid:",puz.grid[5])
-#print("Column:",puz.column(5))
-#print("Row:",puz.row(1))
+os.system('clear')   # Clear the output screen
 
+now = datetime.now()
+print("--------------------------------------------------------------------------------------------------------------------")
+print("----------------                               SUDOKU                     ", now,                    "--------------")
+print("--------------------------------------------------------------------------------------------------------------------")
+
+
+
+argv = sys.argv[1:]
+try:
+    opts, args = getopt.getopt(argv,"hi:",["ifile=","ofile="])
+except getopt.GetoptError:
+    print ('KMeans.py \n\t-i <inputfile> \n\t-h help')
+    sys.exit(2)
+
+for opt, arg in opts:
+  if opt == '-h':                       #Help
+     print ('Sudoku.py \n\t-i <inputfile> \n\t-h help')
+     sys.exit()
+  elif opt in ("-i"):                   #Input File
+     inputfile = arg
+
+
+
+print ('Input file is :', inputfile)
+
+
+
+
+
+# Handle file Data
+if  inputfile != None :
+    with open(inputfile, 'r') as f:
+        lines = f.read().split(',\n')
+        data = [ast.literal_eval(line) for line in lines]
+
+    InPuzzleData = data[0]
+
+
+puz = Puzzle(InPuzzleData)
 
 puz.display()
-
-puz.gridEvaluate()
-
-puz.displayConstraints()
-
-mycell = puz.cell_with_one_constraint()
-print("One Contraint:",mycell)
-myvalue = puz.find_missing(mycell)
-print("myvalue:",myvalue)
-
-
-
-
-
-
-
+puz.fill_constraints_of_one()
 
 
 
