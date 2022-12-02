@@ -8,6 +8,7 @@ class Puzzle:
                 count += 1
         self.length = count
         self.constraints = []
+        self.baseSet = {1,2,3,4,5,6,7,8,9}
 
     def column(self,i):
         return [row[i] for row in self.grid]
@@ -111,7 +112,7 @@ class Puzzle:
 #TODO:  This need to looks at constrains not values.
 #TODO:  ignore cells filled in.
         for cell in range(len(self.constraints)):
-            if len(self.constraints[cell]) == 1:
+            if len(self.constraints[cell]) == 8:
                 return cell
 
 
@@ -124,7 +125,8 @@ class Puzzle:
             CelltoUpdate = self.cell_with_one_constraint()
             #TODO UpdateCell
 
-
+    def find_missing(self,Ordinal):
+        return  self.baseSet - self.constraints[Ordinal]
 
 
 #------------- Display Items
@@ -155,6 +157,8 @@ class Puzzle:
             print(line)
         print("-------------")
         return
+
+
 
 #------------- ideas Not used yet
     def cellValue(self,r,c):
@@ -199,8 +203,11 @@ puz.gridEvaluate()
 
 puz.displayConstraints()
 
+mycell = puz.cell_with_one_constraint()
+print("One Contraint:",mycell)
+myvalue = puz.find_missing(mycell)
+print("myvalue:",myvalue)
 
-print("One Contraint:",puz.cell_with_one_constraint())
 
 
 
