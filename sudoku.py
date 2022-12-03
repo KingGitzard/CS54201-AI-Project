@@ -145,6 +145,25 @@ class Puzzle:
         myValueList = list(self.baseSet - self.constraints[Ordinal])
         return myValueList[0]
 
+    def search(self):
+        # find the most constrainted cell
+        highestOrd = None
+        highestLen = 0
+
+        for o in range(len(self.constraints)):
+#            print("trying:",o,"of len:",len(self.constraints[o]))
+            if (len(self.constraints[o]) > highestLen):
+                highestOrd = o
+                highestLen = len(self.constraints[o])
+
+
+        print("highestOrd:", highestOrd,"of len:",highestLen)
+        # What are our options.
+        # Choose a value.
+
+
+
+
 
 #------------- Display Items
     def displayConstraints(self):
@@ -222,23 +241,30 @@ print("-------------------------------------------------------------------------
 
 argv = sys.argv[1:]
 try:
-    opts, args = getopt.getopt(argv,"hi:",["ifile=","ofile="])
+    opts, args = getopt.getopt(argv,"hi:v:",["ifile=","ofile="])
 except getopt.GetoptError:
-    print ('KMeans.py \n\t-i <inputfile> \n\t-h help')
+    print ('KMeans.py \n\t-i <inputfile> \n\t-v <verbos level> \n\t-h help')
     sys.exit(2)
 
 for opt, arg in opts:
   if opt == '-h':                       #Help
-     print ('Sudoku.py \n\t-i <inputfile> \n\t-h help')
+     print ('Sudoku.py \n\t-i <inputfile> \n\t-v <verbos level> \n\t-h help')
      sys.exit()
   elif opt in ("-i"):                   #Input File
      inputfile = arg
+  elif opt in ("-v"):                   #verbose level
+     verboseLevel = arg
 
 
 
+
+# Display Parameters Passed in
 print ('Input file is :', inputfile)
 
 
+if inputfile == None:
+    print("Must have an input file to load puzzle please try again")
+    exit()  # leave program no file.
 
 
 
@@ -255,7 +281,13 @@ puz = Puzzle(InPuzzleData)
 
 puz.display()
 puz.fill_constraints_of_one()
+puz.displayConstraints()
 
+puz.search()
+
+
+
+# Search by low constraint
 
 
 
