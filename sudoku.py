@@ -117,6 +117,19 @@ class Puzzle:
         else:
             return True
 
+    def isSolved(self):
+        print("Entering Is Solved")
+        solvedFlag = True
+        for r in range(len(self.grid)):
+            for c in range(len(self.grid[r])):
+                solvedFlag = self.cellFilled(r,c)
+                if solvedFlag == False:
+                    quit # breaks c loop
+            if solvedFlag == False:
+                quit # breaks r loop
+        return solvedFlag
+        print ("Done")
+
 
 #------------  Working with Constraint List
     def cell_with_one_constraint(self):
@@ -169,7 +182,11 @@ class Puzzle:
     def displayConstraints(self):
         #displayConstraint list state
         for cell in range(len(self.constraints)):
-            print("Cell:",cell,"Len:",len(self.constraints[cell]),self.constraints[cell])
+            p = self.getcartesian(cell)
+            x = p[0]
+            y = p[1]
+            #print (p,x,y)
+            print("Cell:",cell,"Len:",len(self.constraints[cell]),"IsFilled:",self.cellFilled(x,y) ,self.constraints[cell])
 
 
     def display(self):
@@ -279,11 +296,13 @@ if  inputfile != None :
 
 puz = Puzzle(InPuzzleData)
 
-puz.display()
+#puz.display()
 puz.fill_constraints_of_one()
-puz.displayConstraints()
+#puz.displayConstraints()
 
-puz.search()
+print("isSolved is returning:", puz.isSolved())
+
+#puz.search()
 
 
 
