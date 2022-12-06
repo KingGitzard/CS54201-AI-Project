@@ -139,19 +139,22 @@ class Puzzle:
 
 
     def fill_constraints_of_one(self):
-        puz.gridEvaluate()
-        mycell = puz.cell_with_one_constraint()
+        self.gridEvaluate()
+        mycell = self.cell_with_one_constraint()
+        validateFlag = True  # assuming start, all is well
 
-        while mycell != None:
+        while mycell != None and validateFlag == True:
             print("One Contraint:",mycell)
-            myvalue = puz.find_missing_digit(mycell)
+            myvalue = self.find_missing_digit(mycell)
             print("myvalue",myvalue)
-            cellcart = puz.getcartesian(mycell)
+            cellcart = self.getcartesian(mycell)
             print("cellcart:",cellcart)
-            puz.updatecell(cellcart[0],cellcart[1],myvalue)
-            puz.display()
-            puz.gridEvaluate()
-            mycell = puz.cell_with_one_constraint()
+            self.updatecell(cellcart[0],cellcart[1],myvalue)
+#            self.display()
+            self.gridEvaluate()
+            validateFlag = self.validateGrid()
+            mycell = self.cell_with_one_constraint()
+        return validateFlag
 
 
     def find_missing_digit(self,Ordinal):
@@ -173,6 +176,40 @@ class Puzzle:
         print("highestOrd:", highestOrd,"of len:",highestLen)
         # What are our options.
         # Choose a value.
+
+
+    def validateGrid(self):           #return True if OK  False if not valid
+        print ("validating grid")
+        # Check if constraints have no filled an length of 9
+        for cell in range(len(self.constraints)):
+            p = self.getcartesian(cell)
+            r = p[0]
+            c = p[1]
+            NumberOfConstranting = len(self.constraints[cell])
+            if NumberOfConstranting == 9 and self.cellFilled(r,c) == False:
+                print ("Somethings is wrong with cell:",cell)
+                return False
+        return True
+
+    def solvePuzzle(self):
+        #This loops through steps of solving puzzle
+        validFlag = True
+
+        validFlag = self.fill_constraints_of_one()
+        self.displayConstraints()
+        while self.isSolved() = False:
+            #Push DFS Stack
+            validFlag = self.fill_constraints_of_one() #Fill in ones
+            print ("validFlag:", validFlag)
+            #if not valid grid Pop DFS stack
+        #puz.displayConstraints()
+
+#        puz.search()
+
+    def dfs(self):
+        print("Start DFS")
+        #TODO search for a value to try
+        #Push Puzzle State to Stack
 
 
 
@@ -283,8 +320,6 @@ if inputfile == None:
     print("Must have an input file to load puzzle please try again")
     exit()  # leave program no file.
 
-
-
 # Handle file Data
 if  inputfile != None :
     with open(inputfile, 'r') as f:
@@ -296,17 +331,9 @@ if  inputfile != None :
 
 puz = Puzzle(InPuzzleData)
 
-#puz.display()
-puz.fill_constraints_of_one()
-#puz.displayConstraints()
+puz.display()  # display Start State
+puz.solvePuzzle()
 
-print("isSolved is returning:", puz.isSolved())
-
-#puz.search()
-
-
-
-# Search by low constraint
 
 
 
