@@ -1,12 +1,35 @@
 import os, getopt, sys, ast
 from datetime import datetime
 
+class DepthFirstSearchStack():
+    def __init__(self):
+        self.stack  = []
+
+    def push(self,cell,constrained,puzzle):
+        print("Received Cell:",cell,"Constrained:",constrained,"Puzzle",puzzle)
+        for cell_option in range(len(constrained)):
+#            self.stack.append(list([cell,cell_option,puzzle]))
+            print("list is:",list([cell,cell_option,puzzle]))
+
+    def pop(self,puzzle):
+        stackDepth = len(self.stack )
+        if (stackDepth > 0):
+            del self.stack[-1]      # remove last from stack
+
+        # set up next
+        stackDepth = len(self.stack )
+        if (stackDepth > 0):
+            puzzle.grid =self.stack[stackDepth-1][1]
+            cell = self.stack[stackDepth-1][0]
+            cell_option = self.stack[stackDepth-1][1]
+            puzzle.updatecellO(cell,cell_option)
+
 
 
 class Puzzle:
     def __init__(self, puzzlearray):
         self.grid  = puzzlearray
-        self.stack = []
+        self.stack = DepthFirstSearchStack();
 
 
         count = 0
@@ -22,32 +45,6 @@ class Puzzle:
 
     def row(self,i):
         return self.grid[i]
-
-
-    def push(self,cell,constrained,puzzle):
-        print("Received Cell:",cell,"Constrained:",constrained,"Puzzle",puzzle)
-        for o in range(len(constrained)):
-            self.stack.append(list([cell,constrained[o],puzzle]))
-            print("\nlist is:",list([cell,constrained[o],puzzle]))
-
-        self.setPuzzleFromStack()
-
-    def pop(self,puzzle):
-        stackDepth = len(self.stack )
-        if (stackDepth > 0):
-            del self.stack[-1]      # remove last from stack
-        self.setPuzzleFromStack()
-
-    def setPuzzleFromStack(self):
-        # set up next
-        stackDepth = len(self.stack )
-        if (stackDepth > 0):
-            self.grid = self.stack[stackDepth-1][2]
-            cell = self.stack[stackDepth-1][0]
-            cell_option = self.stack[stackDepth-1][1]
-            self.updatecellO(cell,cell_option)
-
-
 
     def block(self,i):
         ret = []
@@ -151,7 +148,7 @@ class Puzzle:
             return True
 
     def isSolved(self):
-        #print("Entering Is Solved")
+        print("Entering Is Solved")
         solvedFlag = True
         for r in range(len(self.grid)):
             for c in range(len(self.grid[r])):
@@ -233,21 +230,19 @@ class Puzzle:
         validFlag = True
 
         validFlag = self.fill_constraints_of_one()
-#        self.displayConstraints()
-        while self.isSolved() == False:
-            x = input('pause:')
-            if validFlag == True:
-                #Push
-                CellToPush =  self.search()
-                listofOptions =     self.find_missing_set(CellToPush)
-                self.push(CellToPush,listofOptions,self.grid)
-            else:
-                self.Pop()
-
-        self.display()
+        self.displayConstraints()
+#        while self.isSolved() == False:
+            #Push DFS Stack
+        #self.stack.push()
+        CellToPush =  self.search()
+        listofOptions =     self.find_missing_set(CellToPush)
+        self.stack.push(CellToPush,listofOptions,self.grid)
+        print(self.stack)
 
         validFlag = self.fill_constraints_of_one() #Fill in ones
         print ("validFlag:", validFlag)
+            #if not valid grid Pop DFS stack
+        #puz.displayConstraints()
 
 #        puz.search()
 
