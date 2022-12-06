@@ -197,7 +197,7 @@ class Puzzle:
 
         validFlag = self.fill_constraints_of_one()
         self.displayConstraints()
-        while self.isSolved() == False:
+        while self.isSolved() = False:
             #Push DFS Stack
             validFlag = self.fill_constraints_of_one() #Fill in ones
             print ("validFlag:", validFlag)
