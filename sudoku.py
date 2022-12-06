@@ -1,5 +1,6 @@
 import os, getopt, sys, ast
 from datetime import datetime
+import copy
 
 
 
@@ -25,27 +26,33 @@ class Puzzle:
 
 
     def push(self,cell,constrained,puzzle):
-        print("Received Cell:",cell,"Constrained:",constrained,"Puzzle",puzzle)
+        print("Push it real good")
         for o in range(len(constrained)):
-            self.stack.append(list([cell,constrained[o],puzzle]))
+            self.stack.append(list([cell,constrained[o],copy.deepcopy(puzzle)]))
             print("\nlist is:",list([cell,constrained[o],puzzle]))
 
         self.setPuzzleFromStack()
 
-    def pop(self,puzzle):
+    def pop(self):
+        print("pop it real good")
+        print("display stack: ", self.stack)
         stackDepth = len(self.stack )
         if (stackDepth > 0):
-            del self.stack[-1]      # remove last from stack
+            del self.stack[-1]       # remove last from stack
         self.setPuzzleFromStack()
+
 
     def setPuzzleFromStack(self):
         # set up next
         stackDepth = len(self.stack )
         if (stackDepth > 0):
-            self.grid = self.stack[stackDepth-1][2]
+            self.display()
+            print('stack grid: ',self.stack[stackDepth-1][2])
+            self.grid = copy.deepcopy(self.stack[stackDepth-1][2])
             cell = self.stack[stackDepth-1][0]
             cell_option = self.stack[stackDepth-1][1]
             self.updatecellO(cell,cell_option)
+            print("Updated from stack, cell: ",cell, "cell_option: ",cell_option)
 
 
 
@@ -177,12 +184,10 @@ class Puzzle:
         validateFlag = True  # assuming start, all is well
 
         while mycell != None and validateFlag == True:
-            print("One Contraint:",mycell)
             myvalue = self.find_missing_digit(mycell)
-            print("myvalue",myvalue)
             cellcart = self.getcartesian(mycell)
-            print("cellcart:",cellcart)
             self.updatecell(cellcart[0],cellcart[1],myvalue)
+            print("One Constraint: ",mycell, "myvalue: ",myvalue, "cellcart: ",cellcart)
 #            self.display()
             self.gridEvaluate()
             validateFlag = self.validateGrid()
@@ -242,14 +247,14 @@ class Puzzle:
                 listofOptions =     self.find_missing_set(CellToPush)
                 self.push(CellToPush,listofOptions,self.grid)
             else:
-                self.Pop()
+                self.pop()
 
-        self.display()
+            self.display()
 
-        validFlag = self.fill_constraints_of_one() #Fill in ones
-        print ("validFlag:", validFlag)
+            validFlag = self.fill_constraints_of_one() #Fill in ones
+            print ("validFlag:", validFlag)
 
-#        puz.search()
+
 
     def dfs(self):
         print("Start DFS")
