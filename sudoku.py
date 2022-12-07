@@ -1,3 +1,22 @@
+#------------------------------------------------------------------------------
+#------------------------------------------------------------------------------
+#------------------------------------------------------------------------------
+#  SUDOKU V 1.0
+#  Written by:
+#               Hunter  Harbison
+#               Fred    Longo
+#               Keith   Machina
+#
+#
+#
+#  example Run:
+#           python3 sudoku.py  -i sudokuPuzzle/expert2.txt  -v 1
+#
+#------------------------------------------------------------------------------
+#------------------------------------------------------------------------------
+#------------------------------------------------------------------------------
+
+
 import os, getopt, sys, ast
 from datetime import datetime
 import copy
@@ -22,53 +41,13 @@ class Puzzle:
         self.stepFlag = flagvalue
 
 
+    # Returns column of a given cell
     def column(self,i):
         return [row[i] for row in self.grid]
 
+    # Returns row of a given cell
     def row(self,i):
         return self.grid[i]
-
-
-    def push(self,cell,constrained,puzzle):
-        for o in range(len(constrained)):
-            self.stack.append(list([cell,constrained[o],copy.deepcopy(puzzle)]))
-            print("\n                                        Pushing:",[cell,constrained[o]])
-
-
-    def pop(self):
-        stackDepth = len(self.stack )
-        if(stackDepth > 0):
-            if(self.lastCellOptionOnStack(stackDepth)):
-                print('                                        Popping 2:',[self.stack[-1][0],self.stack[-1][1]])
-                del self.stack[-1]  # remove last from stack
-                self.pop()
-
-            else:
-                print('                                        Popping 1:',[self.stack[-1][0],self.stack[-1][1]])
-                del self.stack[-1]
-        else:
-            print("Depth of",stackDepth," on the stack, Impossible!!!")
-            exit()
-
-
-    def lastCellOptionOnStack(self, depth):
-        position = depth - 1
-        print("comparing:",self.stack[position][0],"with",self.stack[position-1][0])
-        if(self.stack[position][0] == self.stack[position-1][0]):
-            return False
-        else:
-            return True
-
-    def setPuzzleFromStack(self):
-        # set up next
-        stackDepth = len(self.stack )
-        if (stackDepth > 0):
-            self.grid = copy.deepcopy(self.stack[stackDepth-1][2])
-            cell = self.stack[stackDepth-1][0]
-            cell_option = self.stack[stackDepth-1][1]
-            self.updatecellO(cell,cell_option)
-            print("Updated(stack): ",[cell, cell_option])
-
 
 
     def block(self,i):
@@ -138,12 +117,67 @@ class Puzzle:
                 return 8
 
 
+
+    # Pushes all constrained to options onto the Stack for a give cell
+    def push(self,cell,constrained,puzzle):
+        for o in range(len(constrained)):
+            self.stack.append(list([cell,constrained[o],copy.deepcopy(puzzle)]))
+            if (AppParameter.verboseLevel > 0):
+                print("                                                ---->Pushing     Cell:",cell,"Option:",constrained[o])
+
+    # Pops options from the stack that has been exhausted in evaluation
+    def pop(self):
+        stackDepth = len(self.stack )
+        if(stackDepth > 0):
+            if(self.lastCellOptionOnStack(stackDepth)):
+                if (AppParameter.verboseLevel > 0):
+                    print('                                                ---->Popping 2   Cell:',self.stack[-1][0],"Option:",self.stack[-1][1])
+                del self.stack[-1]  # remove last from stack
+                self.pop()                    # recursively called to remove nested exhausted options
+
+            else:
+                if (AppParameter.verboseLevel > 0):
+                    print('                                                ---->Popping 1   Cell:',self.stack[-1][0],"Option:",self.stack[-1][1])
+                del self.stack[-1]
+        else:
+            print("Depth of",stackDepth," on the stack, Impossible!!!")
+            exit()
+
+    # Evaluates to see of this is the last cells option on stack for this cell
+    # if so its returning true to trigger double popping logic
+    def lastCellOptionOnStack(self, depth):
+        position = depth - 1
+        if (AppParameter.verboseLevel >= 3):
+            print("comparing:",self.stack[position][0],"with",self.stack[position-1][0])
+        if(self.stack[position][0] == self.stack[position-1][0]):
+            return False
+        else:
+            return True
+
+    # Recreates Puzzles grig from what was saved off in the stack
+    def setPuzzleFromStack(self):
+        # set up next
+        stackDepth = len(self.stack )
+        if (stackDepth > 0):
+            self.grid = copy.deepcopy(self.stack[stackDepth-1][2])
+            cell = self.stack[stackDepth-1][0]
+            cell_option = self.stack[stackDepth-1][1]
+            self.updatecellO(cell,cell_option)
+            if (AppParameter.verboseLevel > 0):
+                print("Updated(stack): ",cell, "myvalue: ",cell_option,"cellcart: ",self.getcartesian(cell))
+                #print("Updated(const): ",mycell, "myvalue: ",myvalue, "cellcart: ",cellcart)
+
+
+
+    # Creates the grid of constraining valuses for each cell.
     def gridEvaluate(self):
         self.constraints = []
         for r in range(len(self.grid)):
             for c in range(len(self.grid[r])):
                 self.constraints.append(self.cellEvaluate(r,c))
 
+
+    # Evaluates and returns a list of a given cells constraining values
     def cellEvaluate(self,row,col):
         if self.cellValue(row,col) == 0:
             cell_constraint_set =  set(self.row(row))     # get the value of the cell
@@ -154,24 +188,28 @@ class Puzzle:
             cell_constraint_set = set([])  #set to empty if it is already filled
             return cell_constraint_set
 
-
+    #returns cell value
     def cellValue(self,r,c):
         return self.grid[r][c]
 
+    # Updates cell with a given value by row col
     def updatecell(self,r,c,value):
         self.grid[r][c] = value
 
+    # Updates cell with a given value by ordinal
     def updatecellO(self,cell,value):
         cart  = self.getcartesian(cell)
         self.grid[cart[0]][cart[1]] = value
 
 
+    # Checks if cell has an assigned value
     def cellFilled(self,r,c):
         if self.cellValue(r,c) == 0:
             return False
         else:
             return True
 
+    # Check if puzzle is done
     def isSolved(self):
         #print("Entering Is Solved")
         solvedFlag = True
@@ -185,14 +223,15 @@ class Puzzle:
         return solvedFlag
         print ("Done")
 
-
-#------------  Working with Constraint List
+    # finds a cell only having one constrained to option
     def cell_with_one_constraint(self):
         for cell in range(len(self.constraints)):
             if len(self.constraints[cell]) == 8:
                 return cell
 
 
+    # goes through grid filling in cells that are constrained to one option
+    # returns validateflag depending if it found the grid in a valid or invalid state
     def fill_constraints_of_one(self):
         self.gridEvaluate()
         mycell = self.cell_with_one_constraint()
@@ -202,24 +241,25 @@ class Puzzle:
             myvalue = self.find_missing_digit(mycell)
             cellcart = self.getcartesian(mycell)
             self.updatecell(cellcart[0],cellcart[1],myvalue)
-            print("Updated(const): ",mycell, "myvalue: ",myvalue, "cellcart: ",cellcart)
+            if (AppParameter.verboseLevel > 0):
+                print("Updated(const): ",mycell, "myvalue: ",myvalue, "cellcart: ",cellcart)
             self.gridEvaluate()
             validateFlag = self.validateGrid()
             mycell = self.cell_with_one_constraint()
         return validateFlag
 
-
+    # finds what he constrained to value is for a cell
     def find_missing_digit(self,Ordinal):
         myValueList = list(self.baseSet - self.constraints[Ordinal])
         return myValueList[0]
 
+    # finds what the constrained to set is.
     def find_missing_set(self,Ordinal):
         myValueList = list(self.baseSet - self.constraints[Ordinal])
         return myValueList
 
-
+    # Use seach to find what is the most constrained cell to put all it's options on the stack
     def search(self):
-        # find the most constrainted cell
         highestOrd = None
         highestLen = 0
 
@@ -227,12 +267,14 @@ class Puzzle:
             if (len(self.constraints[o]) > highestLen):
                 highestOrd = o
                 highestLen = len(self.constraints[o])
-        print("highestOrd:", highestOrd,"of len:",highestLen)
+
+        if (AppParameter.verboseLevel >= 3):
+            print("highestOrd:", highestOrd,"of len:",highestLen)
         return highestOrd
         # What are our options.
         # Choose a value.
 
-
+    # Checks to see grid is in a valid state
     def validateGrid(self):           #return True if OK  False if not valid
         # Check if constraints have no filled an length of 9
         for cell in range(len(self.constraints)):
@@ -241,13 +283,12 @@ class Puzzle:
             c = p[1]
             NumberOfConstranting = len(self.constraints[cell])
             if NumberOfConstranting == 9 and self.cellFilled(r,c) == False:
-                print ("Validation Failed on cell:",cell)
-#                self.setStepFlag(True)
-#                self.displayLoop()
+                if (AppParameter.verboseLevel >= 3):
+                    print ("Validation Failed on cell:",cell)
                 return False
         return True
 
-
+    # Input loop for interactive mode
     def displayLoop(self):
         while self.stepFlag:
             x = input('pause:')
@@ -257,8 +298,6 @@ class Puzzle:
                 self.displayStack(False)
             elif(x == 'c'):
                 self.displayConstraints()
-#            elif(x == 'v'):
-#                print('validateFlag=',validFlag)
             elif(x == 'r'):
                 self.stepFlag = False
             elif(x == 'x'):
@@ -267,7 +306,7 @@ class Puzzle:
                 break
 
 
-
+    # Main code loop for working on puzzle
     def solvePuzzle(self):
         #This loops through steps of solving puzzle
         validFlag = True
@@ -291,16 +330,11 @@ class Puzzle:
 
 
 
-    def dfs(self):
-        print("Start DFS")
-        #TODO search for a value to try
-        #Push Puzzle State to Stack
 
 
 
 
-
-#------------- Display Items
+    #------ Display list of constraining values for all cells.
     def displayConstraints(self):
         #displayConstraint list state
         for cell in range(len(self.constraints)):
@@ -311,6 +345,7 @@ class Puzzle:
             print("Cell:",cell,"Len:",len(self.constraints[cell]),"IsFilled:",self.cellFilled(x,y) ,self.constraints[cell])
 
 
+    # Displays Grid in Puzzle Board format
     def display(self):
         print("-------------")
         for r in range(len(self.grid)):
@@ -333,6 +368,7 @@ class Puzzle:
         print("-------------")
         return
 
+    # Displays Grid in Puzzle Board format with the ability to give a buffer offset
     def displayGrid(self,grid,buff):
         buff = ' ' * buff
         horizontal = buff + "-------------"
@@ -357,6 +393,7 @@ class Puzzle:
         print(horizontal)
         return
 
+    # Displays Stack that is used in the Depth First Seach Logic
     def displayStack(self, shortFlag):
         if(shortFlag == None):
             shortFlag == False
@@ -366,43 +403,68 @@ class Puzzle:
                 self.displayGrid(self.stack[e][2], 30)
 
 
-
-
-#------------- ideas Not used yet
-
-
-
+    # converts Cartesian to Ordinal
     def getOrdinal(self,row,col):
         return ((row * 9 ) + col)
 
+    # converts Ordinal to Cartesian
     def getcartesian(self,ordinal):
         return ( [(ordinal // 9 ) , (ordinal % 9 )] )
 
 
 
-
-#------------- deprecated
-    def unique(self,list1):
-
-        # initialize a null list
-        unique_list = []
-
-        # traverse for all elements
-        for x in list1:
-            # check if exists in unique_list or not
-            if x not in unique_list:
-                unique_list.append(x)
-        unique_list.sort()
-        unique_list.remove(0)
-        return unique_list
+# This class is created to handle input parameters
+class Parameters:
+    def __init__(self):
+        self.commandLineFormat  = 'sudoku.py \n\t-i <inputfile> \n\t-v <verbos level> \n\t-s StepFlag \n\t-h help'
+        self.verboseLevel       = 0
+                                    # 0 = No Excess information
+                                    # 1 = Basic workflow items (Push, Pop, Update)
+                                    # 2 = App Paramerters
+                                    # 3 = Evaluations
 
 
-#---------Pull in Paremeters
+        self.stepFlag           = False
+        self.helpFlag           = False
+        self.inputfile         = []
+        self.getParameters()
 
+
+    def getParameters(self):
+        argv = sys.argv[1:]    # gets back list of Arguments given on command line from the system
+        try:
+            opts, args = getopt.getopt(argv,"hsi:v:",["inputfile="])
+        except getopt.GetoptError:
+            print (self.commandLineFormat)
+            sys.exit(2)
+
+        for opt, arg in opts:
+          if opt in ['-h','--help']:                       #Help
+             print (self.commandLineFormat)
+             sys.exit()
+          elif opt in ["-i","--inputfile"]:                   #Input File
+             self.inputfile = arg
+          elif opt in ["-s"]:                   # Steps Through Flag
+             self.stepFlag = True
+          elif opt in ["-v"]:                   #verbose level
+             self.verboseLevel = int(arg)
+
+
+    def printAll(self):
+        # Display Parameters Passed in
+        print ('helpFlag', self.helpFlag)
+        print ('Input file is :', self.inputfile)
+        print ('stepFlag', self.stepFlag)
+        print ('verboseLevel', self.verboseLevel)
+
+
+
+
+#------------------------------------------------------------------------------
 #------------------------------------Main Code ---------------------------------
 
 
-os.system('clear')   # Clear the output screen
+os.system('clear')                                  # Clear the output screen
 
 now = datetime.now()
 print("--------------------------------------------------------------------------------------------------------------------")
@@ -410,56 +472,37 @@ print("----------------                               SUDOKU                    
 print("--------------------------------------------------------------------------------------------------------------------")
 
 
+AppParameter = Parameters()   # gets parameters
 
-commandLineFormat = 'sudoku.py \n\t-i <inputfile> \n\t-v <verbos level> \n\t-s StepFlag \n\t-h help'
-
-argv = sys.argv[1:]    # gets back list of Arguments given on command line from the system
-try:
-    opts, args = getopt.getopt(argv,"hsi:v:",["inputfile="])
-except getopt.GetoptError:
-    print (commandLineFormat)
-    sys.exit(2)
-
-stepFlag = False
-
-for opt, arg in opts:
-  if opt in ['-h','--help']:                       #Help
-     print (commandLineFormat)
-     sys.exit()
-  elif opt in ["-i","--inputfile"]:                   #Input File
-     inputfile = arg
-  elif opt in ["-s"]:                   # Steps Through Flag
-     stepFlag = True
-  elif opt in ["-v"]:                   #verbose level
-     verboseLevel = arg
+#options to display Parameters
+if (AppParameter.verboseLevel >= 2):
+    AppParameter.printAll()
 
 
-# Display Parameters Passed in
-print ('Input file is :', inputfile)
-print ('stepFlag', stepFlag)
-
-
-if inputfile == None:
+#Validate input file is set
+if AppParameter.inputfile == None:
     print("Must have an input file to load puzzle please try again")
     exit()  # leave program no file.
 
-# Handle file Data
-if  inputfile != None :
-    with open(inputfile, 'r') as f:
+
+# Handle inporting puzzle data from file
+if  AppParameter.inputfile != None :
+    with open(AppParameter.inputfile, 'r') as f:
         lines = f.read().split(',\n')
         data = [ast.literal_eval(line) for line in lines]
-
     InPuzzleData = data[0]
 
 
-puz = Puzzle(InPuzzleData)
-puz.setStepFlag(stepFlag)
-puz.display()  # display Start State
-puz.solvePuzzle()
 
 
+
+puz = Puzzle(InPuzzleData)              #Create Puzzle
+puz.setStepFlag(AppParameter.stepFlag)  #Pass Set flag to puzzle
+
+puz.display()                           # Display Start State of Puzzle
+puz.solvePuzzle()                       # Solves the Puzzle
 print('----- ----- ----- ----- All  Done ----- ----- ----- -----')
-puz.display()  # display Start State
+puz.display()                           # Display End State of Puzzle
 
 
 
