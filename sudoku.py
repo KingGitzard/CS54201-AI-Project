@@ -47,11 +47,13 @@ class Puzzle:
         stackDepth = len(self.stack )
         if (stackDepth > 0):
             self.display()
-            print('stack grid: ',self.stack[stackDepth-1][2])
+            #self.displayGrid(self.stack[stackDepth-1][2], 10)
+            self.displayStack()
             self.grid = copy.deepcopy(self.stack[stackDepth-1][2])
             cell = self.stack[stackDepth-1][0]
             cell_option = self.stack[stackDepth-1][1]
             self.updatecellO(cell,cell_option)
+            self.display()
             print("Updated from stack, cell: ",cell, "cell_option: ",cell_option)
 
 
@@ -250,6 +252,7 @@ class Puzzle:
                 self.pop()
 
             self.display()
+            #self.displayStack()
 
             validFlag = self.fill_constraints_of_one() #Fill in ones
             print ("validFlag:", validFlag)
@@ -297,6 +300,35 @@ class Puzzle:
             print(line)
         print("-------------")
         return
+
+    def displayGrid(self,grid,buff):
+        buff = ' ' * buff
+        horizontal = buff + "-------------"
+        print(horizontal)
+        for r in range(len(grid)):
+            if r in [3,6]:
+                print(horizontal)
+            line = '|'
+            for c in range(len(grid[r])):
+                if c in [3,6]:
+                    line = line + '|'
+
+
+                if (grid[r][c] == 0):
+                    cellvalue = ' '
+                else:
+                    cellvalue = str(grid[r][c])
+
+                line = line + cellvalue
+            line = line + '|'
+            print(buff + line)
+        print(horizontal)
+        return
+    
+    def displayStack(self):
+        for e in range(len(self.stack)):
+            print("this is the org position", self.stack[e][0],"this is the value",self.stack[e][1])
+            self.displayGrid(self.stack[e][2], 30)
 
 
 
