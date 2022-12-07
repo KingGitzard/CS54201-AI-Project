@@ -26,32 +26,38 @@ class Puzzle:
 
 
     def push(self,cell,constrained,puzzle):
-        print("Push it real good")
+#        print("Push it real good")
         for o in range(len(constrained)):
             self.stack.append(list([cell,constrained[o],copy.deepcopy(puzzle)]))
-#            print("\nlist is:",list([cell,constrained[o],puzzle]))
+            print("\n                                        Pushing:",[cell,constrained[o]])
 
-        self.setPuzzleFromStack()
+ #       self.setPuzzleFromStack()
 
     def pop(self):
-        print("pop it real good")
-        self.displayStack(False)
+#        print("pop it real good")
+#        self.displayStack(False)
         stackDepth = len(self.stack )
         if(stackDepth > 0):
             if(self.lastCellOptionOnStack(stackDepth)):
+                print('                                        Popping 2:',[self.stack[-1][0],self.stack[-1][1]])
                 del self.stack[-1]  # remove last from stack
-                del self.stack[-1]
+                self.pop()
+#                print('                                        Popping 2:',[self.stack[-1][0],self.stack[-1][1]])
+#                del self.stack[-1]
+
             else:
+                print('                                        Popping 1:',[self.stack[-1][0],self.stack[-1][1]])
                 del self.stack[-1]
         else:
-            print("you have ",stackDepth," on the stack, impossible.")
+            print("Depth of",stackDepth," on the stack, Impossible!!!")
 #            self.display()
             exit()
-        self.setPuzzleFromStack()
+
+#        self.setPuzzleFromStack()
 
     def lastCellOptionOnStack(self, depth):
-        position = depth - 1 
-        print("comparing:",self.stack[position][1],"with",self.stack[position-1][1])
+        position = depth - 1
+        print("comparing:",self.stack[position][0],"with",self.stack[position-1][0])
         if(self.stack[position][0] == self.stack[position-1][0]):
             return False
         else:
@@ -63,13 +69,13 @@ class Puzzle:
         if (stackDepth > 0):
 #            self.display()
 #           #self.displayGrid(self.stack[stackDepth-1][2], 10)
- #           self.displayStack()
+#            self.displayStack()
             self.grid = copy.deepcopy(self.stack[stackDepth-1][2])
             cell = self.stack[stackDepth-1][0]
             cell_option = self.stack[stackDepth-1][1]
             self.updatecellO(cell,cell_option)
 #            self.display()
-            print("Updated from stack, cell: ",cell, "cell_option: ",cell_option)
+            print("Updated(stack): ",[cell, cell_option])
 
 
 
@@ -204,8 +210,8 @@ class Puzzle:
             myvalue = self.find_missing_digit(mycell)
             cellcart = self.getcartesian(mycell)
             self.updatecell(cellcart[0],cellcart[1],myvalue)
-            self.display()
-            print("One Constraint: ",mycell, "myvalue: ",myvalue, "cellcart: ",cellcart)
+#            self.display()
+            print("Updated(const): ",mycell, "myvalue: ",myvalue, "cellcart: ",cellcart)
 #            self.display()
             self.gridEvaluate()
             validateFlag = self.validateGrid()
@@ -239,7 +245,6 @@ class Puzzle:
 
 
     def validateGrid(self):           #return True if OK  False if not valid
-        print ("validating grid")
         # Check if constraints have no filled an length of 9
         for cell in range(len(self.constraints)):
             p = self.getcartesian(cell)
@@ -247,9 +252,11 @@ class Puzzle:
             c = p[1]
             NumberOfConstranting = len(self.constraints[cell])
             if NumberOfConstranting == 9 and self.cellFilled(r,c) == False:
-                print ("Somethings is wrong with cell:",cell)
+                print ("Validation Failed on cell:",cell)
                 return False
         return True
+
+
 
     def solvePuzzle(self):
         #This loops through steps of solving puzzle
@@ -259,16 +266,19 @@ class Puzzle:
         while self.isSolved() == False:
             while True:
                 x = input('pause:')
-
                 if (x == 'g'):
                     print("grid:",self.display())
                 elif(x == 's'):
                     print('board:',self.displayStack(False))
                 elif(x == 'c'):
                     print('constraints:',self.displayConstraints())
+                elif(x == 'v'):
+                    print('validateFlag=',validFlag)
+                elif(x == 'x'):
+                    exit()
+
                 else:
                     break
-
 
             if validFlag == True:
                 #Push
@@ -278,11 +288,9 @@ class Puzzle:
             else:
                 self.pop()
 
-#            self.display()
-#            self.displayStack(False)
-
+            self.setPuzzleFromStack()
             validFlag = self.fill_constraints_of_one() #Fill in ones
-            print ("validFlag:", validFlag)
+
 
 
 
@@ -351,7 +359,7 @@ class Puzzle:
             print(buff + line)
         print(horizontal)
         return
-    
+
     def displayStack(self, shortFlag):
         if(shortFlag == None):
             shortFlag == False
@@ -359,7 +367,7 @@ class Puzzle:
             print("this is the org position", self.stack[e][0],"this is the value",self.stack[e][1])
             if(shortFlag == False):
                 self.displayGrid(self.stack[e][2], 30)
-            
+
 
 
 
@@ -448,6 +456,8 @@ puz.display()  # display Start State
 puz.solvePuzzle()
 
 
+print('----- ----- ----- ----- All  Done ----- ----- ----- -----')
+puz.display()  # display Start State
 
 
 
