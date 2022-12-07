@@ -8,8 +8,7 @@ class Puzzle:
     def __init__(self, puzzlearray):
         self.grid  = puzzlearray
         self.stack = []
-
-
+        self.stepFlag = False
         count = 0
         for r in range(len(puzzlearray)):
             for c in range(len(puzzlearray[r])):
@@ -17,6 +16,11 @@ class Puzzle:
         self.length = count
         self.constraints = []
         self.baseSet = {1,2,3,4,5,6,7,8,9}
+
+
+    def setStepFlag(self,flagvalue):
+        self.stepFlag = flagvalue
+
 
     def column(self,i):
         return [row[i] for row in self.grid]
@@ -26,34 +30,26 @@ class Puzzle:
 
 
     def push(self,cell,constrained,puzzle):
-#        print("Push it real good")
         for o in range(len(constrained)):
             self.stack.append(list([cell,constrained[o],copy.deepcopy(puzzle)]))
             print("\n                                        Pushing:",[cell,constrained[o]])
 
- #       self.setPuzzleFromStack()
 
     def pop(self):
-#        print("pop it real good")
-#        self.displayStack(False)
         stackDepth = len(self.stack )
         if(stackDepth > 0):
             if(self.lastCellOptionOnStack(stackDepth)):
                 print('                                        Popping 2:',[self.stack[-1][0],self.stack[-1][1]])
                 del self.stack[-1]  # remove last from stack
                 self.pop()
-#                print('                                        Popping 2:',[self.stack[-1][0],self.stack[-1][1]])
-#                del self.stack[-1]
 
             else:
                 print('                                        Popping 1:',[self.stack[-1][0],self.stack[-1][1]])
                 del self.stack[-1]
         else:
             print("Depth of",stackDepth," on the stack, Impossible!!!")
-#            self.display()
             exit()
 
-#        self.setPuzzleFromStack()
 
     def lastCellOptionOnStack(self, depth):
         position = depth - 1
@@ -67,14 +63,10 @@ class Puzzle:
         # set up next
         stackDepth = len(self.stack )
         if (stackDepth > 0):
-#            self.display()
-#           #self.displayGrid(self.stack[stackDepth-1][2], 10)
-#            self.displayStack()
             self.grid = copy.deepcopy(self.stack[stackDepth-1][2])
             cell = self.stack[stackDepth-1][0]
             cell_option = self.stack[stackDepth-1][1]
             self.updatecellO(cell,cell_option)
-#            self.display()
             print("Updated(stack): ",[cell, cell_option])
 
 
@@ -187,9 +179,9 @@ class Puzzle:
             for c in range(len(self.grid[r])):
                 solvedFlag = self.cellFilled(r,c)
                 if solvedFlag == False:
-                    quit # breaks c loop
+                    return solvedFlag
             if solvedFlag == False:
-                quit # breaks r loop
+                return solvedFlag
         return solvedFlag
         print ("Done")
 
@@ -210,9 +202,7 @@ class Puzzle:
             myvalue = self.find_missing_digit(mycell)
             cellcart = self.getcartesian(mycell)
             self.updatecell(cellcart[0],cellcart[1],myvalue)
-#            self.display()
             print("Updated(const): ",mycell, "myvalue: ",myvalue, "cellcart: ",cellcart)
-#            self.display()
             self.gridEvaluate()
             validateFlag = self.validateGrid()
             mycell = self.cell_with_one_constraint()
@@ -234,7 +224,6 @@ class Puzzle:
         highestLen = 0
 
         for o in range(len(self.constraints)):
-#            print("trying:",o,"of len:",len(self.constraints[o]))
             if (len(self.constraints[o]) > highestLen):
                 highestOrd = o
                 highestLen = len(self.constraints[o])
@@ -253,8 +242,29 @@ class Puzzle:
             NumberOfConstranting = len(self.constraints[cell])
             if NumberOfConstranting == 9 and self.cellFilled(r,c) == False:
                 print ("Validation Failed on cell:",cell)
+#                self.setStepFlag(True)
+#                self.displayLoop()
                 return False
         return True
+
+
+    def displayLoop(self):
+        while self.stepFlag:
+            x = input('pause:')
+            if (x == 'g'):
+                self.display()
+            elif(x == 's'):
+                self.displayStack(False)
+            elif(x == 'c'):
+                self.displayConstraints()
+#            elif(x == 'v'):
+#                print('validateFlag=',validFlag)
+            elif(x == 'r'):
+                self.stepFlag = False
+            elif(x == 'x'):
+                exit()
+            else:
+                break
 
 
 
@@ -264,21 +274,8 @@ class Puzzle:
 
         validFlag = self.fill_constraints_of_one()
         while self.isSolved() == False:
-            while True:
-                x = input('pause:')
-                if (x == 'g'):
-                    print("grid:",self.display())
-                elif(x == 's'):
-                    print('board:',self.displayStack(False))
-                elif(x == 'c'):
-                    print('constraints:',self.displayConstraints())
-                elif(x == 'v'):
-                    print('validateFlag=',validFlag)
-                elif(x == 'x'):
-                    exit()
 
-                else:
-                    break
+            self.displayLoop()
 
             if validFlag == True:
                 #Push
@@ -414,27 +411,32 @@ print("-------------------------------------------------------------------------
 
 
 
-argv = sys.argv[1:]
+commandLineFormat = 'sudoku.py \n\t-i <inputfile> \n\t-v <verbos level> \n\t-s StepFlag \n\t-h help'
+
+argv = sys.argv[1:]    # gets back list of Arguments given on command line from the system
 try:
-    opts, args = getopt.getopt(argv,"hi:v:",["ifile=","ofile="])
+    opts, args = getopt.getopt(argv,"hsi:v:",["inputfile="])
 except getopt.GetoptError:
-    print ('KMeans.py \n\t-i <inputfile> \n\t-v <verbos level> \n\t-h help')
+    print (commandLineFormat)
     sys.exit(2)
 
+stepFlag = False
+
 for opt, arg in opts:
-  if opt == '-h':                       #Help
-     print ('Sudoku.py \n\t-i <inputfile> \n\t-v <verbos level> \n\t-h help')
+  if opt in ['-h','--help']:                       #Help
+     print (commandLineFormat)
      sys.exit()
-  elif opt in ("-i"):                   #Input File
+  elif opt in ["-i","--inputfile"]:                   #Input File
      inputfile = arg
-  elif opt in ("-v"):                   #verbose level
+  elif opt in ["-s"]:                   # Steps Through Flag
+     stepFlag = True
+  elif opt in ["-v"]:                   #verbose level
      verboseLevel = arg
-
-
 
 
 # Display Parameters Passed in
 print ('Input file is :', inputfile)
+print ('stepFlag', stepFlag)
 
 
 if inputfile == None:
@@ -451,7 +453,7 @@ if  inputfile != None :
 
 
 puz = Puzzle(InPuzzleData)
-
+puz.setStepFlag(stepFlag)
 puz.display()  # display Start State
 puz.solvePuzzle()
 
