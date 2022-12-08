@@ -180,9 +180,9 @@ class Puzzle:
     # Evaluates and returns a list of a given cells constraining values
     def cellEvaluate(self,row,col):
         if self.cellValue(row,col) == 0:
-            cell_constraint_set =  set(self.row(row))     # get the value of the cell
-            cell_constraint_set = cell_constraint_set.union(set(self.column(col)),set(self.block(self.blockByRC(row,col))))
-            cell_constraint_set.remove(0)
+            cell_constraint_set = set(self.row(row))                                                                            # get constraining items for row
+            cell_constraint_set = cell_constraint_set.union(set(self.column(col)),set(self.block(self.blockByRC(row,col))))     # get constraining itmes for col and block  Unions all together.
+            cell_constraint_set.remove(0)                                                                                       # remove filler of Zero
             return cell_constraint_set
         else:
             cell_constraint_set = set([])  #set to empty if it is already filled
@@ -230,12 +230,12 @@ class Puzzle:
                 return cell
 
 
-    # goes through grid filling in cells that are constrained to one option
-    # returns validateflag depending if it found the grid in a valid or invalid state
+    # goes through grid filling in cells that are constrained to one option             ##
+    # returns validateflag depending if it found the grid in a valid or invalid state   ##
     def fill_constraints_of_one(self):
-        self.gridEvaluate()
-        mycell = self.cell_with_one_constraint()
-        validateFlag = True  # assuming start, all is well
+        self.gridEvaluate()                                                     #Builds list of constraints.
+        mycell = self.cell_with_one_constraint()                                # Returns a cell having one constrait
+        validateFlag = True                                                     # assuming start, all is well
 
         while mycell != None and validateFlag == True:
             myvalue = self.find_missing_digit(mycell)
@@ -243,7 +243,7 @@ class Puzzle:
             self.updatecell(cellcart[0],cellcart[1],myvalue)
             if (AppParameter.verboseLevel > 0):
                 print("Updated(const): ",mycell, "myvalue: ",myvalue, "cellcart: ",cellcart)
-            self.gridEvaluate()
+            self.gridEvaluate()                                                 #Builds list of constraints.
             validateFlag = self.validateGrid()
             mycell = self.cell_with_one_constraint()
         return validateFlag
@@ -259,7 +259,7 @@ class Puzzle:
         return myValueList
 
     # Use seach to find what is the most constrained cell to put all it's options on the stack
-    def search(self):
+    def searchForCellWithMostConstraining(self):
         highestOrd = None
         highestLen = 0
 
@@ -289,7 +289,7 @@ class Puzzle:
         return True
 
     # Input loop for interactive mode
-    def displayLoop(self):
+    def interactiveLoop(self):
         while self.stepFlag:
             x = input('pause:')
             if (x == 'g'):
@@ -306,26 +306,26 @@ class Puzzle:
                 break
 
 
-    # Main code loop for working on puzzle
+    # Main code loop for working on puzzle   -----------------------------------
     def solvePuzzle(self):
         #This loops through steps of solving puzzle
         validFlag = True
 
-        validFlag = self.fill_constraints_of_one()
+        validFlag = self.fill_constraints_of_one()                      # Fill in constraints of ones
         while self.isSolved() == False:
 
-            self.displayLoop()
+            self.interactiveLoop()
 
             if validFlag == True:
                 #Push
-                CellToPush =  self.search()
-                listofOptions =     self.find_missing_set(CellToPush)
-                self.push(CellToPush,listofOptions,self.grid)
+                CellToPush =  self.searchForCellWithMostConstraining()    #Returns Cell With Most Constraining
+                listofOptions =     self.find_missing_set(CellToPush)     #Returns Options for cell
+                self.push(CellToPush,listofOptions,self.grid)             #Pushs Cell with Options to Stack
             else:
                 self.pop()
 
-            self.setPuzzleFromStack()
-            validFlag = self.fill_constraints_of_one() #Fill in ones
+            self.setPuzzleFromStack()                                     # Sets grid to the next item on stack
+            validFlag = self.fill_constraints_of_one()                    # Fill in constraints of ones
 
 
 
