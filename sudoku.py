@@ -123,7 +123,7 @@ class Puzzle:
         for o in range(len(constrained)):
             self.stack.append(list([cell,constrained[o],copy.deepcopy(puzzle)]))
             if (AppParameter.verboseLevel > 0):
-                print("                                                ---->Pushing     Cell:",cell,"Option:",constrained[o])
+                print("                                            ---->Pushing     Cell:",cell,"Option:",constrained[o], "cellcart:",self.getcartesian(cell))
 
     # Pops options from the stack that has been exhausted in evaluation
     def pop(self):
@@ -131,13 +131,13 @@ class Puzzle:
         if(stackDepth > 0):
             if(self.lastCellOptionOnStack(stackDepth)):
                 if (AppParameter.verboseLevel > 0):
-                    print('                                                ---->Popping 2   Cell:',self.stack[-1][0],"Option:",self.stack[-1][1])
+                    print('                                            ---->Popping 2   Cell:',self.stack[-1][0],"Option:",self.stack[-1][1], "cellcart:",self.getcartesian(self.stack[-1][0]))
                 del self.stack[-1]  # remove last from stack
                 self.pop()                    # recursively called to remove nested exhausted options
 
             else:
                 if (AppParameter.verboseLevel > 0):
-                    print('                                                ---->Popping 1   Cell:',self.stack[-1][0],"Option:",self.stack[-1][1])
+                    print('                                            ---->Popping 1   Cell:',self.stack[-1][0],"Option:",self.stack[-1][1], "cellcart:",self.getcartesian(self.stack[-1][0]))
                 del self.stack[-1]
         else:
             print("Depth of",stackDepth," on the stack, Impossible!!!")
